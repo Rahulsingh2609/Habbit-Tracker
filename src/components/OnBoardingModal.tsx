@@ -32,19 +32,19 @@ export function OnboardingModal({ userProfile, onCompleteProfile }: Props) {
       <div className="absolute top-1/2 left-[4%] text-2xl opacity-15 pointer-events-none animate-bounce-slow hidden sm:block">💪</div>
       <div className="absolute top-1/2 right-[4%] text-2xl opacity-15 pointer-events-none animate-bounce-slow hidden sm:block" style={{ animationDelay: '0.7s' }}>📚</div>
 
-      {/* Modal Card — bigger premium frame, no boxed border, just soft glow */}
-      <div className="relative w-full max-w-lg my-8 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 rounded-[2rem] p-9 sm:p-10 shadow-2xl shadow-cyan-950/60 ring-1 ring-white/5 overflow-hidden animate-fade-in-up">
+      {/* Modal Card — bigger premium frame, fully borderless, just soft glow */}
+      <div className="relative w-full max-w-lg my-8 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 rounded-[2rem] p-9 sm:p-10 shadow-2xl shadow-cyan-950/60 overflow-hidden animate-fade-in-up">
         {/* Glowing Ambient Background */}
         <div className="absolute -top-24 -right-24 w-56 h-56 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
         <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" style={{ animationDelay: '1.2s' }} />
 
         <div className="relative text-center space-y-3 mb-10">
-          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-bold text-cyan-300">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-sm font-bold text-cyan-300">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
             Welcome Onboard! 👋
           </div>
           <h2 className="text-3xl font-black text-white tracking-tight">Create Your Profile</h2>
-          <p className="text-sm text-slate-400 max-w-[19rem] mx-auto text-center leading-relaxed">
+          <p className="text-sm text-slate-400 max-w-md mx-auto text-center leading-relaxed">
             Set up your account details to start tracking habits and earning streak badges. 🚀
           </p>
         </div>
@@ -52,8 +52,6 @@ export function OnboardingModal({ userProfile, onCompleteProfile }: Props) {
         <form onSubmit={handleSubmit} className="relative space-y-6">
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name *</label>
-            {/* Icon lives in its own flex box beside the input — cannot overlap the text,
-                regardless of input height or font metrics. */}
             <div className="flex items-center gap-2 bg-slate-950/80 border border-white/10 rounded-xl focus-within:border-cyan-500 transition-colors">
               <div className="flex items-center justify-center w-11 h-11 shrink-0 text-cyan-400">
                 <User className="w-4 h-4" />
