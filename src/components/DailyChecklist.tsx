@@ -46,7 +46,7 @@ export function DailyChecklist({ habits, logs, onToggleHabit, onOpenWeeklyReport
     : habits.filter((h) => h.category?.toLowerCase() === selectedCategory);
 
   return (
-    <div className="space-y-6 pt-2 pb-44">
+    <div className="space-y-6 pt-2" style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px))' }}>
       {/* Date Header */}
       <div className="flex items-center justify-between bg-white/[0.03] border border-white/10 rounded-2xl p-3 px-5 backdrop-blur-md shadow-lg animate-fade-in-up">
         <button className="p-1.5 rounded-lg bg-white/5 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-300 transition-all">
