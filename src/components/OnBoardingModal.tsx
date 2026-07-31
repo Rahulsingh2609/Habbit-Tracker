@@ -39,7 +39,14 @@ export function OnboardingModal({ userProfile, onCompleteProfile }: Props) {
         <div className="absolute -top-16 -right-10 w-56 h-56 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
         <div className="absolute -bottom-16 -left-10 w-56 h-56 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" style={{ animationDelay: '1.2s' }} />
 
-        <div className="relative text-center space-y-3 mb-10">
+        {/* Big faint "ONBOARDING" watermark sitting behind everything, nudged upward */}
+        <div className="absolute inset-x-0 -top-10 sm:-top-14 flex justify-center pointer-events-none select-none overflow-hidden">
+          <span className="text-[3.25rem] sm:text-[4.5rem] font-black uppercase tracking-widest text-white/[0.04] whitespace-nowrap">
+            Onboarding
+          </span>
+        </div>
+
+        <div className="relative text-center space-y-5 mb-12">
           <div
             className="inline-flex items-center gap-2 text-sm font-bold text-cyan-300 animate-fade-in-up"
             style={{ animationDelay: '0ms' }}
@@ -61,7 +68,11 @@ export function OnboardingModal({ userProfile, onCompleteProfile }: Props) {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="relative space-y-6 animate-fade-in-up" style={{ animationDelay: '220ms' }}>
+        <form
+          onSubmit={handleSubmit}
+          className="relative space-y-6 bg-white/[0.04] backdrop-blur-2xl border border-white/10 rounded-[1.75rem] p-6 sm:p-7 shadow-2xl shadow-black/40 animate-fade-in-up"
+          style={{ animationDelay: '220ms' }}
+        >
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name *</label>
             <div className="flex items-center gap-2 bg-slate-950/80 border border-white/10 rounded-xl focus-within:border-cyan-500 transition-colors">
