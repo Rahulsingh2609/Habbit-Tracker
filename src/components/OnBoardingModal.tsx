@@ -32,22 +32,24 @@ export function OnboardingModal({ userProfile, onCompleteProfile }: Props) {
       <div className="absolute top-1/2 left-[4%] text-2xl opacity-15 pointer-events-none animate-bounce-slow hidden sm:block">💪</div>
       <div className="absolute top-1/2 right-[4%] text-2xl opacity-15 pointer-events-none animate-bounce-slow hidden sm:block" style={{ animationDelay: '0.7s' }}>📚</div>
 
-      {/* Modal Card — bigger premium frame */}
-      <div className="relative w-full max-w-lg my-8 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 border border-cyan-500/30 rounded-[2rem] p-8 shadow-2xl shadow-cyan-950/50 overflow-hidden animate-fade-in-up">
+      {/* Modal Card — bigger premium frame, no boxed border, just soft glow */}
+      <div className="relative w-full max-w-lg my-8 bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 rounded-[2rem] p-9 sm:p-10 shadow-2xl shadow-cyan-950/60 ring-1 ring-white/5 overflow-hidden animate-fade-in-up">
         {/* Glowing Ambient Background */}
         <div className="absolute -top-24 -right-24 w-56 h-56 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
         <div className="absolute -bottom-24 -left-24 w-56 h-56 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none animate-pulse-slow" style={{ animationDelay: '1.2s' }} />
 
-        <div className="relative text-center space-y-2.5 mb-8">
+        <div className="relative text-center space-y-3 mb-10">
           <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-xs font-bold text-cyan-300">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             Welcome Onboard! 👋
           </div>
           <h2 className="text-3xl font-black text-white tracking-tight">Create Your Profile</h2>
-          <p className="text-sm text-slate-400 max-w-sm mx-auto">Set up your account details to start tracking habits and earning streak badges. 🚀</p>
+          <p className="text-sm text-slate-400 max-w-[19rem] mx-auto text-center leading-relaxed">
+            Set up your account details to start tracking habits and earning streak badges. 🚀
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="relative space-y-5">
+        <form onSubmit={handleSubmit} className="relative space-y-6">
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">Full Name *</label>
             {/* Icon lives in its own flex box beside the input — cannot overlap the text,
@@ -120,10 +122,10 @@ export function OnboardingModal({ userProfile, onCompleteProfile }: Props) {
 
           <button
             type="submit"
-            className="w-full mt-2 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 font-bold text-sm text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+            className="w-full mt-3 py-4 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 font-bold text-base tracking-wide text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
           >
             <span>Get Started</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </form>
       </div>
