@@ -1,4 +1,4 @@
-import { Calendar, BarChart2, PlusCircle, Award } from 'lucide-react';
+import { Calendar, BarChart2, PlusCircle, Award, User } from 'lucide-react';
 
 export type NavTab = 'today' | 'weekly' | 'manage' | 'profile';
 
@@ -14,6 +14,9 @@ export function BottomNav({ activeTab, setActiveTab }: Props) {
     { id: 'weekly' as NavTab, label: 'Weekly Report', icon: BarChart2 },
     { id: 'manage' as NavTab, label: 'Habits', icon: PlusCircle },
     { id: 'profile' as NavTab, label: 'Streaks', icon: Award },
+    // Profile shares the same screen as Streaks (both live in ProfileStreaks),
+    // but gets its own icon here since that's what was asked for.
+    { id: 'profile' as NavTab, label: 'Profile', icon: User, key: 'profile-icon' },
   ];
 
   return (
@@ -23,7 +26,7 @@ export function BottomNav({ activeTab, setActiveTab }: Props) {
         const isActive = activeTab === tab.id;
         return (
           <button
-            key={tab.id}
+            key={('key' in tab && tab.key) || tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all ${
               isActive

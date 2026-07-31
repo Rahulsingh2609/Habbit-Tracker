@@ -81,7 +81,7 @@ export function App() {
       )}
 
       {/* Main Container */}
-      <main className="max-w-md mx-auto px-4 pt-6">
+      <main className="max-w-md mx-auto px-4 pt-8">
         {activeTab === 'today' && (
           <DailyChecklist
             habits={habits}

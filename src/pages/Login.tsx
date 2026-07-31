@@ -210,19 +210,19 @@ export default function Login() {
           Become unstoppable. 🚀
         </p>
 
-        {/* ================= MODE TOGGLE ================= */}
+{/* ================= MODE TOGGLE ================= */}
         <div
-          className="relative flex rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-1"
-          style={{ marginBottom: "22px" }}
+          className="relative flex items-center rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-2"
+          style={{ marginBottom: "22px", height: "64px" }}
         >
           <div
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 shadow-lg shadow-cyan-500/20 transition-transform duration-300 ease-out"
+            className="absolute top-2 bottom-2 left-2 w-[calc(50%-8px)] rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 shadow-lg shadow-cyan-500/20 transition-transform duration-300 ease-out"
             style={{ transform: mode === "login" ? "translateX(0%)" : "translateX(calc(100% + 8px))" }}
           />
           <button
             type="button"
             onClick={() => switchMode("login")}
-            className={`relative z-10 flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+            className={`relative z-10 flex-1 h-full flex items-center justify-center rounded-xl text-base font-bold transition-colors ${
               mode === "login" ? "text-white" : "text-slate-400"
             }`}
           >
@@ -231,7 +231,7 @@ export default function Login() {
           <button
             type="button"
             onClick={() => switchMode("signup")}
-            className={`relative z-10 flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${
+            className={`relative z-10 flex-1 h-full flex items-center justify-center rounded-xl text-base font-bold transition-colors ${
               mode === "signup" ? "text-white" : "text-slate-400"
             }`}
           >
