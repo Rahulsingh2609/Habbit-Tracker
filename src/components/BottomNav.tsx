@@ -1,55 +1,41 @@
-import React from 'react';
-import { CalendarCheck, BarChart3, PlusCircle, Award } from 'lucide-react';
+import { Calendar, BarChart2, PlusCircle, Award } from 'lucide-react';
 
 export type NavTab = 'today' | 'weekly' | 'manage' | 'profile';
 
-interface BottomNavProps {
+interface Props {
   activeTab: NavTab;
   setActiveTab: (tab: NavTab) => void;
   todayCompletionRate: number;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, todayCompletionRate }) => {
+export function BottomNav({ activeTab, setActiveTab }: Props) {
+  const tabs = [
+    { id: 'today' as NavTab, label: 'Today', icon: Calendar },
+    { id: 'weekly' as NavTab, label: 'Weekly Report', icon: BarChart2 },
+    { id: 'manage' as NavTab, label: 'Habits', icon: PlusCircle },
+    { id: 'profile' as NavTab, label: 'Streaks', icon: Award },
+  ];
+
   return (
-    <nav className="bottom-nav">
-      <div className="max-w-md mx-auto flex items-center justify-around">
-        <button
-          onClick={() => setActiveTab('today')}
-          className={`nav-item ${activeTab === 'today' ? 'active' : ''}`}
-        >
-          <div className="relative">
-            <CalendarCheck className="w-6 h-6" />
-            {todayCompletionRate === 100 && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-ping" />
-            )}
-          </div>
-          <span>Today</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('weekly')}
-          className={`nav-item ${activeTab === 'weekly' ? 'active' : ''}`}
-        >
-          <BarChart3 className="w-6 h-6" />
-          <span>Weekly Report</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('manage')}
-          className={`nav-item ${activeTab === 'manage' ? 'active' : ''}`}
-        >
-          <PlusCircle className="w-6 h-6" />
-          <span>Habits</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-        >
-          <Award className="w-6 h-6" />
-          <span>Streaks</span>
-        </button>
-      </div>
-    </nav>
+    <div className="bg-[#0b0f19]/80 backdrop-blur-2xl border border-white/15 rounded-3xl p-2 px-3 shadow-2xl flex items-center justify-around shadow-cyan-950/50">
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all ${
+              isActive
+                ? "text-cyan-400 bg-cyan-500/10 px-3.5"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <Icon className="w-5 h-5" />
+            <span className="text-[10px] font-bold whitespace-nowrap">{tab.label}</span>
+          </button>
+        );
+      })}
+    </div>
   );
-};
+}

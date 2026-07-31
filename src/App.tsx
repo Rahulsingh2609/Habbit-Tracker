@@ -1,94 +1,87 @@
 import { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
-import type { Habit, HabitLog } from './types/habit';
-import { 
-  loadHabits, saveHabits, loadLogs, 
-  toggleHabitCompletion, calculateUserStats, getTodayString, getTodayLog 
-} from './utils/storage';
+import { signOut } from 'firebase/auth';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from './firebase';
+import { FloatingBackground } from './components/FloatingBackground';
+import { DailyChecklist } from './components/DailyChecklist';
 import { BottomNav } from './components/BottomNav';
 import type { NavTab } from './components/BottomNav';
-import { DailyChecklist } from './components/DailyChecklist';
-import { WeeklyAnalytics } from './components/WeeklyAnalytics';
-import { HabitManager } from './components/HabitManager';
 import { ProfileStreaks } from './components/ProfileStreaks';
-import { Flame } from 'lucide-react';
+import { HabitManager } from './components/HabitManager';
+import { WeeklyAnalytics } from './components/WeeklyAnalytics';
+import { OnboardingModal } from './components/OnBoardingModal';
+import type { Habit, HabitLog } from './types/habit';
+import type { UserProfile } from './types/user';
+import { loadHabits, saveHabits, loadLogs, toggleHabitCompletion } from './utils/storage';
 
 export function App() {
+  const [firebaseUser] = useAuthState(auth);
   const [activeTab, setActiveTab] = useState<NavTab>('today');
   const [habits, setHabits] = useState<Habit[]>([]);
   const [logs, setLogs] = useState<Record<string, HabitLog>>({});
 
+  // User Profile State
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('user_profile_data');
+    return saved ? JSON.parse(saved) : { name: '', phone: '', college: '', age: '', isProfileComplete: false };
+  });
+
   useEffect(() => {
-    const loadedHabits = loadHabits();
-    const loadedLogs = loadLogs();
-    setHabits(loadedHabits);
-    setLogs(loadedLogs);
+    setHabits(loadHabits());
+    setLogs(loadLogs());
   }, []);
 
-  const handleToggleHabit = (dateStr: string, habitId: string, metricValue?: number) => {
-    const { updatedLogs, isCompletedNow } = toggleHabitCompletion(logs, dateStr, habitId, metricValue);
-    setLogs(updatedLogs);
-
-    const todayLog = getTodayLog(updatedLogs, getTodayString());
-    if (isCompletedNow && todayLog.completedHabitIds.length === habits.length) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#6366f1', '#10b981', '#f59e0b', '#38bdf8'],
-      });
+  // Pre-fill the profile name/email from the Firebase account so the
+  // Profile tab always reflects who is actually logged in.
+  useEffect(() => {
+    if (firebaseUser && !userProfile.name && firebaseUser.displayName) {
+      const prefilled = { ...userProfile, name: firebaseUser.displayName };
+      setUserProfile(prefilled);
+      localStorage.setItem('user_profile_data', JSON.stringify(prefilled));
     }
+  }, [firebaseUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSaveProfile = (profile: UserProfile) => {
+    setUserProfile(profile);
+    localStorage.setItem('user_profile_data', JSON.stringify(profile));
   };
 
-  const handleAddHabit = (newHabit: Habit) => {
-    const updated = [...habits, newHabit];
-    setHabits(updated);
-    saveHabits(updated);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Failed to sign out', err);
+    }
+    // AuthGate will swap back to the Login page automatically once
+    // Firebase's auth state clears; we just reset local UI state here.
+    setActiveTab('today');
   };
 
-  const handleDeleteHabit = (habitId: string) => {
-    const updated = habits.filter((h) => h.id !== habitId);
-    setHabits(updated);
-    saveHabits(updated);
+  const handleToggleHabit = (dateStr: string, habitId: string, metricValue?: number) => {
+    const { updatedLogs } = toggleHabitCompletion(logs, dateStr, habitId, metricValue);
+    setLogs(updatedLogs);
   };
 
-  const stats = calculateUserStats(logs, habits);
-  const todayLog = getTodayLog(logs, getTodayString());
-  const todayCompletionRate = habits.length > 0
-    ? Math.round((todayLog.completedHabitIds.length / habits.length) * 100)
-    : 0;
+  const handleHabitChange = (updatedHabits: Habit[]) => {
+    setHabits(updatedHabits);
+    saveHabits(updatedHabits);
+  };
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Top Application Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 p-0.5 shadow-lg shadow-indigo-500/30">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center text-indigo-400 font-extrabold text-base">
-                ⚡
-              </div>
-            </div>
-            <div>
-              <h1 className="font-black text-lg text-white tracking-tight leading-none gradient-text">
-                Habbit Tracker
-              </h1>
-              <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-                Daily Routine & Output Analytics
-              </span>
-            </div>
-          </div>
+    <div className="min-h-screen text-slate-100 font-sans relative antialiased selection:bg-cyan-500 selection:text-white">
+      {/* Ambient Floating Background */}
+      <FloatingBackground />
 
-          {/* Quick Streak Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-950/40 border border-rose-500/30 text-rose-400 text-xs font-bold shadow-sm">
-            <Flame className="w-4 h-4 fill-rose-500 text-rose-500" />
-            <span>{stats.currentStreak}d Streak</span>
-          </div>
-        </div>
-      </header>
+      {/* Onboarding Modal */}
+      {!userProfile.isProfileComplete && (
+        <OnboardingModal
+          userProfile={userProfile}
+          onCompleteProfile={handleSaveProfile}
+        />
+      )}
 
-      {/* Main Active Tab Content View */}
-      <main className="flex-1">
+      {/* Main Container */}
+      <main className="max-w-md mx-auto px-4 pt-6">
         {activeTab === 'today' && (
           <DailyChecklist
             habits={habits}
@@ -105,20 +98,25 @@ export function App() {
         {activeTab === 'manage' && (
           <HabitManager
             habits={habits}
-            onAddHabit={handleAddHabit}
-            onDeleteHabit={handleDeleteHabit}
+            onSaveHabits={handleHabitChange}
           />
         )}
 
-        {activeTab === 'profile' && <ProfileStreaks stats={stats} />}
+        {activeTab === 'profile' && (
+          <ProfileStreaks
+            userProfile={userProfile}
+            userEmail={firebaseUser?.email ?? undefined}
+            onSaveProfile={handleSaveProfile}
+            onLogout={handleLogout}
+            totalCompletedHabits={Object.values(logs).reduce((acc, log) => acc + (log.completedHabitIds?.length || 0), 0)}
+          />
+        )}
       </main>
 
-      {/* Fixed Bottom Navigation Bar */}
-      <BottomNav
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        todayCompletionRate={todayCompletionRate}
-      />
+      {/* Glassmorphic Navigation Dock */}
+      <div className="fixed bottom-4 left-0 right-0 max-w-md mx-auto px-4 z-40">
+        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} todayCompletionRate={0} />
+      </div>
     </div>
   );
 }
