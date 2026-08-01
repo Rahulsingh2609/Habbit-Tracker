@@ -17,7 +17,15 @@ import {
   Laptop,
   Check,
   X,
-  LogOut
+  LogOut,
+  Award,
+  BarChart2,
+  CheckCircle2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight
 } from 'lucide-react';
 
 interface Habbit {
@@ -32,7 +40,16 @@ interface Habbit {
 }
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return localStorage.getItem('isLoggedIn') !== 'false';
+  });
+
+  const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
   const [activeTab, setActiveTab] = useState<'today' | 'weekly' | 'habbits' | 'streaks' | 'profile'>('today');
   const [selectedCategory, setSelectedCategory] = useState<string>('All Habbits');
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -43,14 +60,14 @@ export default function App() {
   const [newHabitSubtext, setNewHabitSubtext] = useState('');
 
   const [habbits, setHabbits] = useState<Habbit[]>([
-    { id: '1', name: 'Early Wakeup', category: 'ROUTINE', subtext: '6:00 AM', streak: 3, completed: false, icon: <Sun style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #9333ea, #6366f1)' },
+    { id: '1', name: 'Early Wakeup', category: 'ROUTINE', subtext: '6:00 AM', streak: 3, completed: true, icon: <Sun style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #9333ea, #6366f1)' },
     { id: '2', name: 'Running', category: 'FITNESS', subtext: '5 km run', streak: 5, completed: true, icon: <Activity style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #ea580c, #f59e0b)' },
     { id: '3', name: 'Healthy Breakfast', category: 'HEALTH', subtext: 'High protein', streak: 2, completed: false, icon: <Apple style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #059669, #2dd4bf)' },
-    { id: '4', name: 'College Prep', category: 'LEARNING', subtext: 'Lectures & notes', streak: 12, completed: false, icon: <GraduationCap style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
+    { id: '4', name: 'College Prep', category: 'LEARNING', subtext: 'Lectures & notes', streak: 12, completed: true, icon: <GraduationCap style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
     { id: '5', name: 'Gym Training', category: 'FITNESS', subtext: 'Heavy lifting', streak: 4, completed: false, icon: <Dumbbell style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #ea580c, #f59e0b)' },
     { id: '6', name: 'Clean Diet', category: 'HEALTH', subtext: 'Zero junk food', streak: 8, completed: true, icon: <Utensils style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #059669, #2dd4bf)' },
     { id: '7', name: 'DSA & Coding', category: 'LEARNING', subtext: 'LeetCode practice', streak: 15, completed: false, icon: <Code style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
-    { id: '8', name: 'Web Dev Project', category: 'LEARNING', subtext: 'Build features', streak: 9, completed: false, icon: <Laptop style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
+    { id: '8', name: 'Web Dev Project', category: 'LEARNING', subtext: 'Build features', streak: 9, completed: true, icon: <Laptop style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
   ]);
 
   const toggleHabbit = (id: string) => {
@@ -65,6 +82,17 @@ export default function App() {
       }
       return h;
     }));
+  };
+
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('isLoggedIn', 'true');
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.setItem('isLoggedIn', 'false');
+    setIsLoggedIn(false);
   };
 
   const handleAddHabit = (e: React.FormEvent) => {
@@ -105,24 +133,269 @@ export default function App() {
   const completedCount = habbits.filter(h => h.completed).length;
   const progressPercentage = Math.round((completedCount / habbits.length) * 100) || 0;
 
+  // Mock Weekly Data
+  const weeklyData = [
+    { day: 'Mon', completed: 6, total: 8, percentage: 75 },
+    { day: 'Tue', completed: 7, total: 8, percentage: 88 },
+    { day: 'Wed', completed: 5, total: 8, percentage: 63 },
+    { day: 'Thu', completed: 8, total: 8, percentage: 100 },
+    { day: 'Fri', completed: 4, total: 8, percentage: 50 },
+    { day: 'Sat', completed: completedCount, total: habbits.length, percentage: progressPercentage },
+    { day: 'Sun', completed: 0, total: 8, percentage: 0 },
+  ];
+
+  // 1. ORIGINAL LOGIN / CREATE ACCOUNT SCREEN WITH FLOATING ANIMATED EMOJIS
   if (!isLoggedIn) {
     return (
-      <div style={{ backgroundColor: '#070b12', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontFamily: 'sans-serif', padding: '20px' }}>
-        <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '32px', textAlign: 'center', maxWidth: '360px', width: '100%' }}>
-          <LogOut style={{ width: 48, height: 48, color: '#f43f5e', margin: '0 auto 16px auto' }} />
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 8px 0' }}>Logged Out</h2>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 24px 0' }}>You have successfully signed out of Habit Tracker.</p>
-          <button 
-            onClick={() => setIsLoggedIn(true)}
-            style={{ width: '100%', backgroundColor: '#06b6d4', color: '#000000', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-          >
-            Log Back In
-          </button>
+      <div style={{
+        position: 'relative',
+        backgroundColor: '#0a0d18',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        padding: '20px',
+        overflow: 'hidden'
+      }}>
+        
+        {/* CSS KEYFRAME ANIMATIONS INJECTED INLINE */}
+        <style>{`
+          @keyframes floatEmoji {
+            0% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
+            50% { transform: translateY(-25px) rotate(15deg); opacity: 0.6; }
+            100% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
+          }
+          .floating-emoji {
+            position: absolute;
+            user-select: none;
+            pointer-events: none;
+            animation: floatEmoji 6s ease-in-out infinite;
+          }
+        `}</style>
+
+        {/* FLOATING BACKGROUND EMOJIS */}
+        <div className="floating-emoji" style={{ top: '10%', left: '12%', fontSize: '32px', animationDelay: '0s' }}>🚀</div>
+        <div className="floating-emoji" style={{ top: '20%', right: '15%', fontSize: '36px', animationDelay: '1.5s' }}>🔥</div>
+        <div className="floating-emoji" style={{ bottom: '25%', left: '8%', fontSize: '28px', animationDelay: '3s' }}>✨</div>
+        <div className="floating-emoji" style={{ bottom: '15%', right: '12%', fontSize: '34px', animationDelay: '0.8s' }}>🎯</div>
+        <div className="floating-emoji" style={{ top: '50%', left: '5%', fontSize: '26px', animationDelay: '2.2s' }}>⚡</div>
+        <div className="floating-emoji" style={{ top: '65%', right: '8%', fontSize: '30px', animationDelay: '4s' }}>🏆</div>
+
+        {/* MAIN AUTH CARD */}
+        <div style={{ maxWidth: '420px', width: '100%', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          
+          {/* LOGO GLOW */}
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '50%',
+            background: 'conic-gradient(from 180deg, #38bdf8, #818cf8, #38bdf8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '3px',
+            boxShadow: '0 0 25px rgba(56, 189, 248, 0.35)',
+            marginBottom: '20px'
+          }}>
+            <div style={{ width: '100%', height: '100%', backgroundColor: '#0a0d18', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Check style={{ width: '32px', height: '32px', color: '#38bdf8', strokeWidth: 3 }} />
+            </div>
+          </div>
+
+          {/* SUBTITLE & TITLE */}
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#00d8f6', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '6px' }}>
+              WELCOME BACK
+            </div>
+            <h1 style={{ fontSize: '32px', fontWeight: '900', margin: '0 0 12px 0', color: '#ffffff', letterSpacing: '-0.02em' }}>
+              Habit Tracker
+            </h1>
+            <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0', lineHeight: '1.6' }}>
+              Build better habits.<br />
+              Stay consistent.<br />
+              Become unstoppable. 🚀
+            </p>
+          </div>
+
+          {/* LOGIN / CREATE ACCOUNT SEGMENTED TRACK */}
+          <div style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '24px',
+            padding: '4px',
+            display: 'flex',
+            width: '100%',
+            marginBottom: '20px',
+            position: 'relative',
+            boxSizing: 'border-box'
+          }}>
+            <button
+              onClick={() => setAuthTab('login')}
+              style={{
+                flex: 1,
+                padding: '10px 0',
+                borderRadius: '20px',
+                border: 'none',
+                background: authTab === 'login' ? 'linear-gradient(90deg, #7c3aed, #06b6d4)' : 'transparent',
+                color: authTab === 'login' ? '#ffffff' : '#94a3b8',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: authTab === 'login' ? '0 0 15px rgba(124, 58, 237, 0.4)' : 'none'
+              }}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => setAuthTab('register')}
+              style={{
+                flex: 1,
+                padding: '10px 0',
+                borderRadius: '20px',
+                border: 'none',
+                background: authTab === 'register' ? 'linear-gradient(90deg, #7c3aed, #06b6d4)' : 'transparent',
+                color: authTab === 'register' ? '#ffffff' : '#94a3b8',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: authTab === 'register' ? '0 0 15px rgba(124, 58, 237, 0.4)' : 'none'
+              }}
+            >
+              Create Account
+            </button>
+          </div>
+
+          {/* FORM INPUTS */}
+          <form onSubmit={handleAuthSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            
+            {/* EMAIL INPUT */}
+            <div style={{
+              backgroundColor: '#121829',
+              border: '1px solid #1e293d',
+              borderRadius: '16px',
+              padding: '14px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <Mail style={{ width: '20px', height: '20px', color: '#64748b' }} />
+              <input 
+                type="email"
+                required
+                placeholder="Enter your Email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  width: '100%'
+                }}
+              />
+            </div>
+
+            {/* PASSWORD INPUT */}
+            <div style={{
+              backgroundColor: '#121829',
+              border: '1px solid #1e293d',
+              borderRadius: '16px',
+              padding: '14px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                <Lock style={{ width: '20px', height: '20px', color: '#64748b' }} />
+                <input 
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="Enter your Password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    color: '#ffffff',
+                    fontSize: '14px',
+                    width: '100%'
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 0 }}
+              >
+                {showPassword ? <EyeOff style={{ width: '18px', height: '18px' }} /> : <Eye style={{ width: '18px', height: '18px' }} />}
+              </button>
+            </div>
+
+            {/* REMEMBER ME & FORGOT PASSWORD */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', margin: '4px 0 8px 0' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  style={{ accentColor: '#06b6d4', width: '14px', height: '14px', borderRadius: '4px' }}
+                />
+                Remember Me
+              </label>
+              <a href="#forgot" style={{ color: '#00d8f6', textDecoration: 'none', fontWeight: 'bold' }}>
+                Forgot Password?
+              </a>
+            </div>
+
+            {/* MAIN LOGIN SUBMIT BUTTON */}
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '16px',
+                borderRadius: '16px',
+                border: 'none',
+                background: 'linear-gradient(90deg, #6366f1, #a855f7 50%, #06b6d4)',
+                color: '#ffffff',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 0 25px rgba(99, 102, 241, 0.35)'
+              }}
+            >
+              <span>{authTab === 'login' ? 'Login' : 'Create Account'}</span>
+              <ArrowRight style={{ width: '20px', height: '20px' }} />
+            </button>
+          </form>
+
+          {/* BOTTOM SUBTEXT */}
+          <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: '#94a3b8' }}>
+            <span>{authTab === 'login' ? "Don't have an account? " : "Already have an account? "}</span>
+            <button
+              onClick={() => setAuthTab(authTab === 'login' ? 'register' : 'login')}
+              style={{ background: 'none', border: 'none', color: '#00d8f6', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              {authTab === 'login' ? 'Create one' : 'Log in'}
+            </button>
+          </div>
+
         </div>
       </div>
     );
   }
 
+  // 2. MAIN HABIT TRACKER APP VIEW
   return (
     <div style={{ backgroundColor: '#070b12', minHeight: '100vh', color: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', borderLeft: '1px solid #1e293b', borderRight: '1px solid #1e293b' }}>
@@ -144,10 +417,10 @@ export default function App() {
           </button>
         </header>
 
-        {/* MAIN CONTENT AREA */}
+        {/* MAIN CONTENT */}
         <main style={{ flex: 1, padding: '20px 16px 100px 16px', overflowY: 'auto' }}>
           
-          {/* TAB 1: TODAY */}
+          {/* TODAY TAB */}
           {activeTab === 'today' && (
             <>
               {/* PROGRESS CARD */}
@@ -268,24 +541,43 @@ export default function App() {
             </>
           )}
 
-          {/* TAB 2: WEEKLY */}
+          {/* ADVANCED WEEKLY REPORT TAB */}
           {activeTab === 'weekly' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '16px', borderRadius: '14px' }}>
+                  <div style={{ color: '#22d3ee', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 'bold' }}>
+                    <BarChart2 style={{ width: 16, height: 16 }} />
+                    <span>Weekly Avg</span>
+                  </div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '6px' }}>71%</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>+12% vs last week</div>
+                </div>
+
+                <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '16px', borderRadius: '14px' }}>
+                  <div style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 'bold' }}>
+                    <Award style={{ width: 16, height: 16 }} />
+                    <span>Best Streak</span>
+                  </div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '6px' }}>15 Days</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>DSA & Coding</div>
+                </div>
+              </div>
+
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px' }}>
-                <h3 style={{ fontSize: '16px', margin: '0 0 16px 0', color: '#ffffff' }}>Weekly Completion Rate</h3>
-                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '140px', padding: '10px 0' }}>
-                  {[
-                    { day: 'Mon', val: 70 },
-                    { day: 'Tue', val: 85 },
-                    { day: 'Wed', val: 60 },
-                    { day: 'Thu', val: 90 },
-                    { day: 'Fri', val: 50 },
-                    { day: 'Sat', val: progressPercentage },
-                    { day: 'Sun', val: 0 },
-                  ].map((d, i) => (
-                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', height: '100%', justifyContent: 'flex-end' }}>
-                      <div style={{ width: '28px', backgroundColor: d.day === 'Sat' ? '#06b6d4' : '#1e293b', height: `${d.val}%`, borderRadius: '6px', transition: 'height 0.3s' }}></div>
-                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>{d.day}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>Daily Progress Breakdown</h3>
+                  <span style={{ fontSize: '12px', color: '#22d3ee', fontWeight: 'bold' }}>This Week</span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '150px', paddingBottom: '8px' }}>
+                  {weeklyData.map((d, i) => (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', height: '100%', justifyContent: 'flex-end', flex: 1 }}>
+                      <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 'bold' }}>{d.completed}</span>
+                      <div style={{ width: '24px', backgroundColor: '#1e293b', height: '100%', borderRadius: '6px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
+                        <div style={{ width: '100%', backgroundColor: d.day === 'Sat' ? '#06b6d4' : '#3b82f6', height: `${d.percentage}%`, borderRadius: '6px', transition: 'height 0.4s ease' }} />
+                      </div>
+                      <span style={{ fontSize: '12px', color: d.day === 'Sat' ? '#06b6d4' : '#94a3b8', fontWeight: d.day === 'Sat' ? 'bold' : 'normal' }}>{d.day}</span>
                     </div>
                   ))}
                 </div>
@@ -293,7 +585,7 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 3: HABBITS (MANAGE & ADD) */}
+          {/* HABBITS TAB */}
           {activeTab === 'habbits' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <button 
@@ -320,7 +612,7 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 4: STREAKS */}
+          {/* STREAKS TAB */}
           {activeTab === 'streaks' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {habbits.map((habbit) => (
@@ -338,7 +630,7 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 5: PROFILE */}
+          {/* PROFILE TAB */}
           {activeTab === 'profile' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
@@ -346,12 +638,12 @@ export default function App() {
                   U
                 </div>
                 <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Active User</h2>
-                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>user@habit-tracker.com</p>
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>{emailInput || 'user@habit-tracker.com'}</p>
               </div>
 
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', overflow: 'hidden' }}>
                 <button 
-                  onClick={() => setIsLoggedIn(false)}
+                  onClick={handleLogout}
                   style={{ width: '100%', padding: '16px', backgroundColor: 'transparent', border: 'none', color: '#f43f5e', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
                   <LogOut style={{ width: 18, height: 18 }} />
