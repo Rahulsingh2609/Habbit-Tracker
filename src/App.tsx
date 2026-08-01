@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// ✅ To this:
 import { 
   Calendar, 
   TrendingUp, 
@@ -20,7 +21,6 @@ import {
   LogOut,
   Award,
   BarChart2,
-  CheckCircle2,
   Mail,
   Lock,
   Eye,
