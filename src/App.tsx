@@ -54,7 +54,7 @@ interface WeeklyMilestone {
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem('isLoggedIn') !== 'false';
+    return localStorage.getItem('isLoggedIn') === 'true';
   });
 
   const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
@@ -64,13 +64,12 @@ export default function App() {
   const [rememberMe, setRememberMe] = useState(false);
 
   // Profile Details State
-  const [userName, setUserName] = useState<string>(() => localStorage.getItem('userName') || 'Rahul Singh');
+  const [userName, setUserName] = useState<string>(() => localStorage.getItem('userName') || '');
   const [userMobile, setUserMobile] = useState<string>(() => localStorage.getItem('userMobile') || '+91 9876543210');
   const [userAge, setUserAge] = useState<string>(() => localStorage.getItem('userAge') || '21');
   const [userCollege, setUserCollege] = useState<string>(() => localStorage.getItem('userCollege') || 'Engineering Institute');
-  const [isProfileSetupOpen, setIsProfileSetupOpen] = useState<boolean>(() => {
-    return !localStorage.getItem('isProfileSetupComplete');
-  });
+  
+  const [isProfileSetupOpen, setIsProfileSetupOpen] = useState<boolean>(false);
 
   // Profile Image State with Persistent Storage
   const [profileImage, setProfileImage] = useState<string | null>(() => {
@@ -128,10 +127,12 @@ export default function App() {
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('isLoggedIn', 'true');
-    setIsLoggedIn(true);
-    if (!localStorage.getItem('isProfileSetupComplete')) {
-      setIsProfileSetupOpen(true);
+    if (userName) {
+      localStorage.setItem('userName', userName);
+    } else {
+      setUserName('User');
     }
+    setIsLoggedIn(true);
   };
 
   const handleSaveProfileSetup = (e: React.FormEvent) => {
@@ -140,7 +141,6 @@ export default function App() {
     localStorage.setItem('userMobile', userMobile);
     localStorage.setItem('userAge', userAge);
     localStorage.setItem('userCollege', userCollege);
-    localStorage.setItem('isProfileSetupComplete', 'true');
     setIsProfileSetupOpen(false);
   };
 
@@ -197,11 +197,12 @@ export default function App() {
     setIsAddModalOpen(false);
   };
 
+  // Safe Progress Calculations
   const completedCount = habbits.filter(h => h.completed).length;
-  const progressPercentage = Math.round((completedCount / habbits.length) * 100) || 0;
+  const progressPercentage = habbits.length > 0 ? Math.round((completedCount / habbits.length) * 100) : 0;
 
   const completedMilestonesCount = weeklyMilestones.filter(m => m.completed).length;
-  const milestonesPercentage = Math.round((completedMilestonesCount / weeklyMilestones.length) * 100) || 0;
+  const milestonesPercentage = weeklyMilestones.length > 0 ? Math.round((completedMilestonesCount / weeklyMilestones.length) * 100) : 0;
 
   const weeklyData = [
     { day: 'Mon', completed: 2, total: 8, percentage: 25 },
@@ -248,8 +249,6 @@ export default function App() {
         <div className="floating-emoji" style={{ top: '18%', right: '12%', fontSize: '36px', animationDelay: '1.5s' }}>🍏</div>
         <div className="floating-emoji" style={{ bottom: '28%', left: '8%', fontSize: '28px', animationDelay: '3s' }}>📚</div>
         <div className="floating-emoji" style={{ bottom: '15%', right: '10%', fontSize: '34px', animationDelay: '0.8s' }}>💻</div>
-        <div className="floating-emoji" style={{ top: '48%', left: '4%', fontSize: '26px', animationDelay: '2.2s' }}>🔥</div>
-        <div className="floating-emoji" style={{ top: '62%', right: '6%', fontSize: '30px', animationDelay: '4s' }}>🏆</div>
 
         <div style={{ maxWidth: '420px', width: '100%', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', marginBottom: 'auto' }}>
           
@@ -284,6 +283,7 @@ export default function App() {
             </p>
           </div>
 
+          {/* TAB SWITCHER */}
           <div style={{
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -333,6 +333,29 @@ export default function App() {
           </div>
 
           <form onSubmit={handleAuthSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            
+            {authTab === 'register' && (
+              <div style={{
+                backgroundColor: '#121829',
+                border: '1px solid #1e293d',
+                borderRadius: '16px',
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <User style={{ width: '20px', height: '20px', color: '#64748b' }} />
+                <input 
+                  type="text"
+                  required
+                  placeholder="Enter your Full Name"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  style={{ backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#ffffff', fontSize: '14px', width: '100%' }}
+                />
+              </div>
+            )}
+
             <div style={{
               backgroundColor: '#121829',
               border: '1px solid #1e293d',
@@ -438,9 +461,6 @@ export default function App() {
           <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 4px 0', letterSpacing: '0.02em' }}>
             @2026 Build by Rahul Singh
           </p>
-          <p style={{ fontSize: '10px', color: '#475569', margin: 0 }}>
-            Small daily improvements lead to massive long-term success.
-          </p>
         </footer>
 
       </div>
@@ -450,20 +470,6 @@ export default function App() {
   return (
     <div style={{ backgroundColor: '#070b12', minHeight: '100vh', color: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', borderLeft: '1px solid #1e293b', borderRight: '1px solid #1e293b' }}>
-        
-        <style>{`
-          @keyframes floatEmoji {
-            0% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-            50% { transform: translateY(-18px) rotate(10deg); opacity: 0.8; }
-            100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-          }
-          .floating-setup-emoji {
-            position: absolute;
-            user-select: none;
-            pointer-events: none;
-            animation: floatEmoji 5s ease-in-out infinite;
-          }
-        `}</style>
 
         {/* HEADER */}
         <header style={{ padding: '20px 24px 12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #0f172a' }}>
@@ -606,19 +612,10 @@ export default function App() {
           {/* WEEKLY REPORT TAB */}
           {activeTab === 'weekly' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              
-              {/* HERO STATS OVERVIEW */}
-              <div style={{
-                background: 'linear-gradient(135deg, #1e1b4b, #0f172a)',
-                border: '1px solid #312e81',
-                borderRadius: '20px',
-                padding: '20px',
-                position: 'relative',
-                overflow: 'hidden'
-              }}>
+              <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #0f172a)', border: '1px solid #312e81', borderRadius: '20px', padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#38bdf8', fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.05em' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#38bdf8', fontSize: '12px', fontWeight: 'bold' }}>
                       <Sparkles style={{ width: 14, height: 14 }} />
                       <span>PREMIUM REPORT</span>
                     </div>
@@ -631,69 +628,54 @@ export default function App() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                   <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                    {/* USED AWARD ICON HERE */}
                     <Award style={{ width: 20, height: 20, color: '#f59e0b', margin: '0 auto 4px auto' }} />
-                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginTop: '2px' }}>{Math.max(...habbits.map(h => h.streak))} Days</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff' }}>{Math.max(...habbits.map(h => h.streak))} Days</div>
                     <div style={{ fontSize: '10px', color: '#94a3b8' }}>Best Streak</div>
                   </div>
                   <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
                     <div style={{ fontSize: '18px' }}>🎯</div>
-                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginTop: '2px' }}>{completedCount} / {habbits.length}</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff' }}>{completedCount} / {habbits.length}</div>
                     <div style={{ fontSize: '10px', color: '#94a3b8' }}>Habbits Today</div>
                   </div>
                   <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
                     <div style={{ fontSize: '18px' }}>🏆</div>
-                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff', marginTop: '2px' }}>{completedMilestonesCount} / {weeklyMilestones.length}</div>
+                    <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ffffff' }}>{completedMilestonesCount} / {weeklyMilestones.length}</div>
                     <div style={{ fontSize: '10px', color: '#94a3b8' }}>Milestones</div>
                   </div>
                 </div>
               </div>
 
-              {/* BAR GRAPH SECTION */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '20px', padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {/* USED BARCHART2 ICON HERE */}
-                      <BarChart2 style={{ width: 18, height: 18, color: '#38bdf8' }} />
-                      <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>Daily Consistency Graph</h3>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0' }}>Completion % for each day</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <BarChart2 style={{ width: 18, height: 18, color: '#38bdf8' }} />
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>Daily Consistency Graph</h3>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#22d3ee', fontWeight: 'bold' }}>Aug 1 - Aug 7</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '180px', paddingBottom: '10px', gap: '8px' }}>
                   {weeklyData.map((d, i) => (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', height: '100%', justifyContent: 'flex-end', flex: 1 }}>
-                      <span style={{ fontSize: '10px', color: d.day === 'Sat' ? '#06b6d4' : '#94a3b8', fontWeight: 'bold' }}>{d.percentage}%</span>
+                      <span style={{ fontSize: '10px', color: '#94a3b8' }}>{d.percentage}%</span>
                       <div style={{ width: '100%', maxWidth: '28px', backgroundColor: '#1e293b', height: '100%', borderRadius: '8px', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-end' }}>
-                        <div style={{ 
-                          width: '100%', 
-                          background: d.day === 'Sat' ? 'linear-gradient(180deg, #38bdf8, #0284c7)' : 'linear-gradient(180deg, #818cf8, #4f46e5)', 
-                          height: `${d.percentage}%`, 
-                          borderRadius: '8px', 
-                          transition: 'height 0.5s ease' 
-                        }} />
+                        <div style={{ width: '100%', background: d.day === 'Sat' ? 'linear-gradient(180deg, #38bdf8, #0284c7)' : 'linear-gradient(180deg, #818cf8, #4f46e5)', height: `${d.percentage}%`, borderRadius: '8px' }} />
                       </div>
-                      <span style={{ fontSize: '12px', color: d.day === 'Sat' ? '#38bdf8' : '#94a3b8', fontWeight: d.day === 'Sat' ? 'bold' : 'normal' }}>{d.day}</span>
+                      <span style={{ fontSize: '12px', color: d.day === 'Sat' ? '#38bdf8' : '#94a3b8' }}>{d.day}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* WEEKLY MILESTONES CHECKLIST */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '20px', padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {/* USED CHECKCIRCLE ICON HERE */}
-                      <CheckCircle style={{ width: 18, height: 18, color: '#10b981' }} />
-                      <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>Weekly Goal Milestones</h3>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0' }}>Key targets to complete this week</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle style={{ width: 18, height: 18, color: '#10b981' }} />
+                    <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>Weekly Goal Milestones</h3>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 'bold' }}>{milestonesPercentage}% Done</span>
+                  {/* ✅ Option 1 applied: Render milestonesPercentage here */}
+                  <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '4px 10px', borderRadius: '12px' }}>
+                    {milestonesPercentage}% Done
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -709,43 +691,24 @@ export default function App() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
+                        cursor: 'pointer'
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '20px' }}>{milestone.emoji}</span>
                         <div>
-                          <div style={{ 
-                            fontSize: '13px', 
-                            fontWeight: '600', 
-                            color: milestone.completed ? '#22d3ee' : '#ffffff',
-                            textDecoration: milestone.completed ? 'line-through' : 'none'
-                          }}>
+                          <div style={{ fontSize: '13px', fontWeight: '600', color: milestone.completed ? '#22d3ee' : '#ffffff', textDecoration: milestone.completed ? 'line-through' : 'none' }}>
                             {milestone.title}
                           </div>
-                          <span style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', fontWeight: 'bold' }}>{milestone.category}</span>
                         </div>
                       </div>
-
-                      <div style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        border: milestone.completed ? 'none' : '2px solid #475569',
-                        backgroundColor: milestone.completed ? '#06b6d4' : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#000000'
-                      }}>
+                      <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: milestone.completed ? 'none' : '2px solid #475569', backgroundColor: milestone.completed ? '#06b6d4' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {milestone.completed && <Check style={{ width: 14, height: 14, strokeWidth: 3 }} />}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-
             </div>
           )}
 
@@ -760,14 +723,11 @@ export default function App() {
                 <span>Add New Habbit</span>
               </button>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {habbits.map((h) => (
                   <div key={h.id} style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '12px 16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontWeight: '600', fontSize: '14px' }}>{h.name}</span>
-                    <button 
-                      onClick={() => setHabbits(habbits.filter(item => item.id !== h.id))}
-                      style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', fontSize: '12px' }}
-                    >
+                    <button onClick={() => setHabbits(habbits.filter(item => item.id !== h.id))} style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', fontSize: '12px' }}>
                       Delete
                     </button>
                   </div>
@@ -797,75 +757,21 @@ export default function App() {
           {/* PROFILE TAB */}
           {activeTab === 'profile' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '20px', padding: '24px', textAlign: 'center', position: 'relative' }}>
-                
+              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '20px', padding: '24px', textAlign: 'center' }}>
                 <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 14px auto' }}>
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    backgroundColor: '#06b6d4',
-                    borderRadius: '50%',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '32px',
-                    fontWeight: 'bold',
-                    color: '#000000',
-                    border: '3px solid #22d3ee'
-                  }}>
-                    {profileImage ? (
-                      <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      userName.charAt(0) || 'R'
-                    )}
+                  <div style={{ width: '80px', height: '80px', backgroundColor: '#06b6d4', borderRadius: '50%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 'bold', color: '#000000' }}>
+                    {profileImage ? <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (userName ? userName.charAt(0).toUpperCase() : 'U')}
                   </div>
-
-                  <label htmlFor="profile-photo-upload" style={{
-                    position: 'absolute',
-                    bottom: '0',
-                    right: '0',
-                    backgroundColor: '#0f172a',
-                    border: '1px solid #22d3ee',
-                    borderRadius: '50%',
-                    padding: '6px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
-                  }}>
+                  <label htmlFor="profile-photo-upload" style={{ position: 'absolute', bottom: '0', right: '0', backgroundColor: '#0f172a', border: '1px solid #22d3ee', borderRadius: '50%', padding: '6px', cursor: 'pointer' }}>
                     <Camera style={{ width: '14px', height: '14px', color: '#22d3ee' }} />
-                    <input 
-                      id="profile-photo-upload" 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleImageUpload} 
-                      style={{ display: 'none' }} 
-                    />
+                    <input id="profile-photo-upload" type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
                   </label>
                 </div>
 
-                <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>{userName}</h2>
-                <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>{emailInput || 'rahulsingh@gmail.com'}</p>
+                <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>{userName || 'User Name'}</h2>
+                <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>{emailInput || 'user@example.com'}</p>
 
-                <button 
-                  onClick={() => setIsProfileSetupOpen(true)}
-                  style={{
-                    marginTop: '12px',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                    border: '1px solid rgba(6, 182, 212, 0.3)',
-                    color: '#22d3ee',
-                    padding: '8px 16px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
+                <button onClick={() => setIsProfileSetupOpen(true)} style={{ marginTop: '12px', backgroundColor: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.3)', color: '#22d3ee', padding: '8px 16px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <Edit3 style={{ width: 14, height: 14 }} />
                   <span>Edit Profile Details</span>
                 </button>
@@ -897,95 +803,43 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', overflow: 'hidden', marginTop: '10px' }}>
-                <button 
-                  onClick={handleLogout}
-                  style={{ width: '100%', padding: '16px', backgroundColor: 'transparent', border: 'none', color: '#f43f5e', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
-                >
-                  <LogOut style={{ width: 18, height: 18 }} />
-                  <span>Log Out</span>
-                </button>
-              </div>
+              <button onClick={handleLogout} style={{ width: '100%', padding: '16px', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', color: '#f43f5e', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '10px' }}>
+                <LogOut style={{ width: 18, height: 18 }} />
+                <span>Log Out</span>
+              </button>
             </div>
           )}
 
         </main>
 
-        {/* PROFILE SETUP MODAL */}
+        {/* EDIT PROFILE MODAL */}
         {isProfileSetupOpen && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(7, 11, 18, 0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px', overflow: 'hidden' }}>
-            
-            <div className="floating-setup-emoji" style={{ top: '8%', left: '10%', fontSize: '32px', animationDelay: '0s' }}>🏋️‍♂️</div>
-            <div className="floating-setup-emoji" style={{ top: '15%', right: '12%', fontSize: '36px', animationDelay: '1.2s' }}>🍏</div>
-            <div className="floating-setup-emoji" style={{ bottom: '18%', left: '8%', fontSize: '28px', animationDelay: '2.5s' }}>📚</div>
-            <div className="floating-setup-emoji" style={{ bottom: '10%', right: '10%', fontSize: '34px', animationDelay: '0.8s' }}>💻</div>
-            <div className="floating-setup-emoji" style={{ top: '48%', left: '5%', fontSize: '28px', animationDelay: '2s' }}>🔥</div>
-            <div className="floating-setup-emoji" style={{ top: '65%', right: '8%', fontSize: '30px', animationDelay: '3.5s' }}>🏆</div>
-
-            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '24px', width: '100%', maxWidth: '400px', padding: '28px', position: 'relative', boxShadow: '0 0 35px rgba(6, 182, 212, 0.2)', zIndex: 10 }}>
-              
-              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #06b6d4, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
-                  <User style={{ width: '28px', height: '28px', color: '#ffffff' }} />
-                </div>
-                <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>Setup Your Profile</h2>
-                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>Fill details to personalize your habbit tracker</p>
-              </div>
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(7, 11, 18, 0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px' }}>
+            <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '24px', width: '100%', maxWidth: '400px', padding: '28px', position: 'relative' }}>
+              <button onClick={() => setIsProfileSetupOpen(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+                <X style={{ width: 20, height: 20 }} />
+              </button>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0 0 16px 0', color: '#ffffff' }}>Update Profile</h2>
 
               <form onSubmit={handleSaveProfileSetup} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Full Name</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="Enter your full name" 
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', boxSizing: 'border-box', outline: 'none' }}
-                  />
+                  <input type="text" required value={userName} onChange={(e) => setUserName(e.target.value)} style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
-
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Mobile Number</label>
-                  <input 
-                    type="tel" 
-                    required 
-                    placeholder="+91 9876543210" 
-                    value={userMobile}
-                    onChange={(e) => setUserMobile(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', boxSizing: 'border-box', outline: 'none' }}
-                  />
+                  <input type="tel" required value={userMobile} onChange={(e) => setUserMobile(e.target.value)} style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
-
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Age</label>
-                  <input 
-                    type="number" 
-                    required 
-                    placeholder="e.g., 21" 
-                    value={userAge}
-                    onChange={(e) => setUserAge(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', boxSizing: 'border-box', outline: 'none' }}
-                  />
+                  <input type="number" required value={userAge} onChange={(e) => setUserAge(e.target.value)} style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
-
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>College / Institute Name</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="Enter college name" 
-                    value={userCollege}
-                    onChange={(e) => setUserCollege(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', boxSizing: 'border-box', outline: 'none' }}
-                  />
+                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>College / Institute</label>
+                  <input type="text" required value={userCollege} onChange={(e) => setUserCollege(e.target.value)} style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293d', borderRadius: '12px', padding: '12px 14px', color: '#ffffff', outline: 'none', boxSizing: 'border-box' }} />
                 </div>
-
-                <button 
-                  type="submit" 
-                  style={{ width: '100%', background: 'linear-gradient(90deg, #06b6d4, #6366f1)', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '14px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px', boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }}
-                >
-                  Save & Continue 🚀
+                <button type="submit" style={{ width: '100%', background: 'linear-gradient(90deg, #06b6d4, #6366f1)', color: '#ffffff', border: 'none', borderRadius: '12px', padding: '14px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
+                  Save Details
                 </button>
               </form>
             </div>
@@ -999,51 +853,27 @@ export default function App() {
               <button onClick={() => setIsAddModalOpen(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
                 <X style={{ width: 20, height: 20 }} />
               </button>
-              
               <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 16px 0', color: '#ffffff' }}>Create New Habbit</h2>
               
               <form onSubmit={handleAddHabbit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Habbit Name</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="e.g., Morning Meditation" 
-                    value={newHabbitName}
-                    onChange={(e) => setNewHabbitName(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px 12px', color: '#ffffff', boxSizing: 'border-box' }}
-                  />
+                  <input type="text" required placeholder="e.g., Morning Meditation" value={newHabbitName} onChange={(e) => setNewHabbitName(e.target.value)} style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px 12px', color: '#ffffff', boxSizing: 'border-box' }} />
                 </div>
-
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Category</label>
-                  <select 
-                    value={newHabbitCategory}
-                    onChange={(e) => setNewHabbitCategory(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px 12px', color: '#ffffff', boxSizing: 'border-box' }}
-                  >
+                  <select value={newHabbitCategory} onChange={(e) => setNewHabbitCategory(e.target.value)} style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px 12px', color: '#ffffff', boxSizing: 'border-box' }}>
                     <option value="ROUTINE">Routine</option>
                     <option value="FITNESS">Fitness</option>
                     <option value="HEALTH">Health</option>
                     <option value="LEARNING">Learning</option>
                   </select>
                 </div>
-
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Subtext / Goal</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g., 10 minutes daily" 
-                    value={newHabbitSubtext}
-                    onChange={(e) => setNewHabbitSubtext(e.target.value)}
-                    style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px 12px', color: '#ffffff', boxSizing: 'border-box' }}
-                  />
+                  <input type="text" placeholder="e.g., 10 minutes daily" value={newHabbitSubtext} onChange={(e) => setNewHabbitSubtext(e.target.value)} style={{ width: '100%', backgroundColor: '#070b12', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px 12px', color: '#ffffff', boxSizing: 'border-box' }} />
                 </div>
-
-                <button 
-                  type="submit" 
-                  style={{ width: '100%', backgroundColor: '#06b6d4', color: '#000000', border: 'none', borderRadius: '8px', padding: '12px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}
-                >
+                <button type="submit" style={{ width: '100%', backgroundColor: '#06b6d4', color: '#000000', border: 'none', borderRadius: '8px', padding: '12px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' }}>
                   Save Habbit
                 </button>
               </form>
@@ -1057,22 +887,18 @@ export default function App() {
             <Calendar style={{ width: 20, height: 20 }} />
             <span style={{ fontSize: '10px', fontWeight: '500' }}>Today</span>
           </button>
-
           <button onClick={() => setActiveTab('weekly')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: activeTab === 'weekly' ? '#22d3ee' : '#64748b', cursor: 'pointer' }}>
             <TrendingUp style={{ width: 20, height: 20 }} />
             <span style={{ fontSize: '10px', fontWeight: '500' }}>Weekly</span>
           </button>
-
           <button onClick={() => { setActiveTab('habbits'); setIsAddModalOpen(true); }} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: activeTab === 'habbits' ? '#22d3ee' : '#64748b', cursor: 'pointer' }}>
             <PlusCircle style={{ width: 20, height: 20 }} />
             <span style={{ fontSize: '10px', fontWeight: '500' }}>Habbits</span>
           </button>
-
           <button onClick={() => setActiveTab('streaks')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: activeTab === 'streaks' ? '#22d3ee' : '#64748b', cursor: 'pointer' }}>
             <Flame style={{ width: 20, height: 20 }} />
             <span style={{ fontSize: '10px', fontWeight: '500' }}>Streaks</span>
           </button>
-
           <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: activeTab === 'profile' ? '#22d3ee' : '#64748b', cursor: 'pointer' }}>
             <User style={{ width: 20, height: 20 }} />
             <span style={{ fontSize: '10px', fontWeight: '500' }}>Profile</span>
