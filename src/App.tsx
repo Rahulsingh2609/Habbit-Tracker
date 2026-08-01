@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// ✅ To this:
 import { 
   Calendar, 
   TrendingUp, 
@@ -25,7 +24,8 @@ import {
   Lock,
   Eye,
   EyeOff,
-  ArrowRight
+  ArrowRight,
+  Camera
 } from 'lucide-react';
 
 interface Habbit {
@@ -50,6 +50,11 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Profile Image State
+  const [profileImage, setProfileImage] = useState<string | null>(() => {
+    return localStorage.getItem('profileImage') || null;
+  });
+
   const [activeTab, setActiveTab] = useState<'today' | 'weekly' | 'habbits' | 'streaks' | 'profile'>('today');
   const [selectedCategory, setSelectedCategory] = useState<string>('All Habbits');
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -59,15 +64,16 @@ export default function App() {
   const [newHabitCategory, setNewHabitCategory] = useState('ROUTINE');
   const [newHabitSubtext, setNewHabitSubtext] = useState('');
 
+  // Habits start from ZERO (completed = false, streak = 0)
   const [habbits, setHabbits] = useState<Habbit[]>([
-    { id: '1', name: 'Early Wakeup', category: 'ROUTINE', subtext: '6:00 AM', streak: 3, completed: true, icon: <Sun style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #9333ea, #6366f1)' },
-    { id: '2', name: 'Running', category: 'FITNESS', subtext: '5 km run', streak: 5, completed: true, icon: <Activity style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #ea580c, #f59e0b)' },
-    { id: '3', name: 'Healthy Breakfast', category: 'HEALTH', subtext: 'High protein', streak: 2, completed: false, icon: <Apple style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #059669, #2dd4bf)' },
-    { id: '4', name: 'College Prep', category: 'LEARNING', subtext: 'Lectures & notes', streak: 12, completed: true, icon: <GraduationCap style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
-    { id: '5', name: 'Gym Training', category: 'FITNESS', subtext: 'Heavy lifting', streak: 4, completed: false, icon: <Dumbbell style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #ea580c, #f59e0b)' },
-    { id: '6', name: 'Clean Diet', category: 'HEALTH', subtext: 'Zero junk food', streak: 8, completed: true, icon: <Utensils style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #059669, #2dd4bf)' },
-    { id: '7', name: 'DSA & Coding', category: 'LEARNING', subtext: 'LeetCode practice', streak: 15, completed: false, icon: <Code style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
-    { id: '8', name: 'Web Dev Project', category: 'LEARNING', subtext: 'Build features', streak: 9, completed: true, icon: <Laptop style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
+    { id: '1', name: 'Early Wakeup', category: 'ROUTINE', subtext: '6:00 AM', streak: 0, completed: false, icon: <Sun style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #9333ea, #6366f1)' },
+    { id: '2', name: 'Running', category: 'FITNESS', subtext: '5 km run', streak: 0, completed: false, icon: <Activity style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #ea580c, #f59e0b)' },
+    { id: '3', name: 'Healthy Breakfast', category: 'HEALTH', subtext: 'High protein', streak: 0, completed: false, icon: <Apple style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #059669, #2dd4bf)' },
+    { id: '4', name: 'College Prep', category: 'LEARNING', subtext: 'Lectures & notes', streak: 0, completed: false, icon: <GraduationCap style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
+    { id: '5', name: 'Gym Training', category: 'FITNESS', subtext: 'Heavy lifting', streak: 0, completed: false, icon: <Dumbbell style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #ea580c, #f59e0b)' },
+    { id: '6', name: 'Clean Diet', category: 'HEALTH', subtext: 'Zero junk food', streak: 0, completed: false, icon: <Utensils style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #059669, #2dd4bf)' },
+    { id: '7', name: 'DSA & Coding', category: 'LEARNING', subtext: 'LeetCode practice', streak: 0, completed: false, icon: <Code style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
+    { id: '8', name: 'Web Dev Project', category: 'LEARNING', subtext: 'Build features', streak: 0, completed: false, icon: <Laptop style={{ width: 20, height: 20, color: 'white' }} />, iconBg: 'linear-gradient(135deg, #2563eb, #22d3ee)' },
   ]);
 
   const toggleHabbit = (id: string) => {
@@ -95,6 +101,19 @@ export default function App() {
     setIsLoggedIn(false);
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setProfileImage(base64String);
+        localStorage.setItem('profileImage', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddHabit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newHabitName.trim()) return;
@@ -118,7 +137,7 @@ export default function App() {
       name: newHabitName,
       category: newHabitCategory,
       subtext: newHabitSubtext || 'Daily Target',
-      streak: 1,
+      streak: 0,
       completed: false,
       icon,
       iconBg
@@ -135,16 +154,16 @@ export default function App() {
 
   // Mock Weekly Data
   const weeklyData = [
-    { day: 'Mon', completed: 6, total: 8, percentage: 75 },
-    { day: 'Tue', completed: 7, total: 8, percentage: 88 },
-    { day: 'Wed', completed: 5, total: 8, percentage: 63 },
-    { day: 'Thu', completed: 8, total: 8, percentage: 100 },
-    { day: 'Fri', completed: 4, total: 8, percentage: 50 },
+    { day: 'Mon', completed: 0, total: 8, percentage: 0 },
+    { day: 'Tue', completed: 0, total: 8, percentage: 0 },
+    { day: 'Wed', completed: 0, total: 8, percentage: 0 },
+    { day: 'Thu', completed: 0, total: 8, percentage: 0 },
+    { day: 'Fri', completed: 0, total: 8, percentage: 0 },
     { day: 'Sat', completed: completedCount, total: habbits.length, percentage: progressPercentage },
     { day: 'Sun', completed: 0, total: 8, percentage: 0 },
   ];
 
-  // 1. ORIGINAL LOGIN / CREATE ACCOUNT SCREEN WITH FLOATING ANIMATED EMOJIS
+  // 1. LOGIN / CREATE ACCOUNT SCREEN WITH CUSTOM FOOTER
   if (!isLoggedIn) {
     return (
       <div style={{
@@ -152,15 +171,16 @@ export default function App() {
         backgroundColor: '#0a0d18',
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         color: '#ffffff',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         padding: '20px',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        boxSizing: 'border-box'
       }}>
         
-        {/* CSS KEYFRAME ANIMATIONS INJECTED INLINE */}
         <style>{`
           @keyframes floatEmoji {
             0% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
@@ -175,7 +195,7 @@ export default function App() {
           }
         `}</style>
 
-        {/* FLOATING BACKGROUND EMOJIS */}
+        {/* FLOATING EMOJIS */}
         <div className="floating-emoji" style={{ top: '10%', left: '12%', fontSize: '32px', animationDelay: '0s' }}>🚀</div>
         <div className="floating-emoji" style={{ top: '20%', right: '15%', fontSize: '36px', animationDelay: '1.5s' }}>🔥</div>
         <div className="floating-emoji" style={{ bottom: '25%', left: '8%', fontSize: '28px', animationDelay: '3s' }}>✨</div>
@@ -183,8 +203,8 @@ export default function App() {
         <div className="floating-emoji" style={{ top: '50%', left: '5%', fontSize: '26px', animationDelay: '2.2s' }}>⚡</div>
         <div className="floating-emoji" style={{ top: '65%', right: '8%', fontSize: '30px', animationDelay: '4s' }}>🏆</div>
 
-        {/* MAIN AUTH CARD */}
-        <div style={{ maxWidth: '420px', width: '100%', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* TOP / CENTER CONTENT CONTAINER */}
+        <div style={{ maxWidth: '420px', width: '100%', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', marginBottom: 'auto' }}>
           
           {/* LOGO GLOW */}
           <div style={{
@@ -204,7 +224,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* SUBTITLE & TITLE */}
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#00d8f6', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '6px' }}>
               WELCOME BACK
@@ -219,7 +238,7 @@ export default function App() {
             </p>
           </div>
 
-          {/* LOGIN / CREATE ACCOUNT SEGMENTED TRACK */}
+          {/* TAB TRACK */}
           <div style={{
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
             border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -228,7 +247,6 @@ export default function App() {
             display: 'flex',
             width: '100%',
             marginBottom: '20px',
-            position: 'relative',
             boxSizing: 'border-box'
           }}>
             <button
@@ -269,10 +287,7 @@ export default function App() {
             </button>
           </div>
 
-          {/* FORM INPUTS */}
           <form onSubmit={handleAuthSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            
-            {/* EMAIL INPUT */}
             <div style={{
               backgroundColor: '#121829',
               border: '1px solid #1e293d',
@@ -289,18 +304,10 @@ export default function App() {
                 placeholder="Enter your Email"
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
-                style={{
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  width: '100%'
-                }}
+                style={{ backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#ffffff', fontSize: '14px', width: '100%' }}
               />
             </div>
 
-            {/* PASSWORD INPUT */}
             <div style={{
               backgroundColor: '#121829',
               border: '1px solid #1e293d',
@@ -319,14 +326,7 @@ export default function App() {
                   placeholder="Enter your Password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    color: '#ffffff',
-                    fontSize: '14px',
-                    width: '100%'
-                  }}
+                  style={{ backgroundColor: 'transparent', border: 'none', outline: 'none', color: '#ffffff', fontSize: '14px', width: '100%' }}
                 />
               </div>
               <button
@@ -338,7 +338,6 @@ export default function App() {
               </button>
             </div>
 
-            {/* REMEMBER ME & FORGOT PASSWORD */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13px', margin: '4px 0 8px 0' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', cursor: 'pointer' }}>
                 <input 
@@ -354,7 +353,6 @@ export default function App() {
               </a>
             </div>
 
-            {/* MAIN LOGIN SUBMIT BUTTON */}
             <button
               type="submit"
               style={{
@@ -379,7 +377,6 @@ export default function App() {
             </button>
           </form>
 
-          {/* BOTTOM SUBTEXT */}
           <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '13px', color: '#94a3b8' }}>
             <span>{authTab === 'login' ? "Don't have an account? " : "Already have an account? "}</span>
             <button
@@ -391,11 +388,22 @@ export default function App() {
           </div>
 
         </div>
+
+        {/* BOTTOM CUSTOM FOOTER */}
+        <footer style={{ textAlign: 'center', zIndex: 10, paddingTop: '20px' }}>
+          <p style={{ fontSize: '11px', color: '#64748b', margin: '0 0 4px 0', letterSpacing: '0.02em' }}>
+            ©2026 Built by Rahul Singh
+          </p>
+          <p style={{ fontSize: '10px', color: '#475569', margin: 0 }}>
+            Small daily improvements lead to massive long-term success.
+          </p>
+        </footer>
+
       </div>
     );
   }
 
-  // 2. MAIN HABIT TRACKER APP VIEW
+  // 2. MAIN HABIT TRACKER DASHBOARD
   return (
     <div style={{ backgroundColor: '#070b12', minHeight: '100vh', color: '#ffffff', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', borderLeft: '1px solid #1e293b', borderRight: '1px solid #1e293b' }}>
@@ -417,13 +425,12 @@ export default function App() {
           </button>
         </header>
 
-        {/* MAIN CONTENT */}
+        {/* MAIN CONTENT AREA */}
         <main style={{ flex: 1, padding: '20px 16px 100px 16px', overflowY: 'auto' }}>
           
           {/* TODAY TAB */}
           {activeTab === 'today' && (
             <>
-              {/* PROGRESS CARD */}
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '20px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ paddingLeft: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#22d3ee', fontSize: '12px', fontWeight: 'bold' }}>
@@ -456,7 +463,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* CATEGORY TAGS */}
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '8px' }}>
                 {['All Habbits', 'Fitness', 'Health', 'Learning', 'Routine'].map((cat) => (
                   <button
@@ -479,7 +485,6 @@ export default function App() {
                 ))}
               </div>
 
-              {/* HABBIT LIST */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {habbits
                   .filter(h => selectedCategory === 'All Habbits' || h.category.toLowerCase() === selectedCategory.toLowerCase())
@@ -541,7 +546,7 @@ export default function App() {
             </>
           )}
 
-          {/* ADVANCED WEEKLY REPORT TAB */}
+          {/* WEEKLY TAB */}
           {activeTab === 'weekly' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -550,8 +555,8 @@ export default function App() {
                     <BarChart2 style={{ width: 16, height: 16 }} />
                     <span>Weekly Avg</span>
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '6px' }}>71%</div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>+12% vs last week</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '6px' }}>{progressPercentage}%</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Current completion</div>
                 </div>
 
                 <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', padding: '16px', borderRadius: '14px' }}>
@@ -559,8 +564,10 @@ export default function App() {
                     <Award style={{ width: 16, height: 16 }} />
                     <span>Best Streak</span>
                   </div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '6px' }}>15 Days</div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>DSA & Coding</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '6px' }}>
+                    {Math.max(...habbits.map(h => h.streak))} Days
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Top Performing</div>
                 </div>
               </div>
 
@@ -585,7 +592,7 @@ export default function App() {
             </div>
           )}
 
-          {/* HABBITS TAB */}
+          {/* HABITS TAB */}
           {activeTab === 'habbits' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <button 
@@ -630,15 +637,61 @@ export default function App() {
             </div>
           )}
 
-          {/* PROFILE TAB */}
+          {/* PROFILE TAB (UPDATED WITH IMAGE UPLOAD & USER NAME) */}
           {activeTab === 'profile' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-                <div style={{ width: '64px', height: '64px', backgroundColor: '#06b6d4', borderRadius: '50%', margin: '0 auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', color: '#000000' }}>
-                  U
+                
+                {/* PROFILE PICTURE WITH UPLOAD OVERLAY */}
+                <div style={{ position: 'relative', width: '72px', height: '72px', margin: '0 auto 12px auto' }}>
+                  <div style={{
+                    width: '72px',
+                    height: '72px',
+                    backgroundColor: '#06b6d4',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    color: '#000000',
+                    border: '2px solid #22d3ee'
+                  }}>
+                    {profileImage ? (
+                      <img src={profileImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      'R'
+                    )}
+                  </div>
+
+                  {/* HIDDEN FILE INPUT & CLICKABLE CAMERA ICON */}
+                  <label htmlFor="profile-upload" style={{
+                    position: 'absolute',
+                    bottom: '0',
+                    right: '0',
+                    backgroundColor: '#0f172a',
+                    border: '1px solid #22d3ee',
+                    borderRadius: '50%',
+                    padding: '5px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Camera style={{ width: '14px', height: '14px', color: '#22d3ee' }} />
+                    <input 
+                      id="profile-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      style={{ display: 'none' }} 
+                    />
+                  </label>
                 </div>
-                <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>Active User</h2>
-                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>{emailInput || 'user@habit-tracker.com'}</p>
+
+                <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>Rahul Singh</h2>
+                <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>{emailInput || 'rahulsingh@gmail.com'}</p>
               </div>
 
               <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', overflow: 'hidden' }}>
@@ -655,7 +708,7 @@ export default function App() {
 
         </main>
 
-        {/* ADD HABIT MODAL POPUP */}
+        {/* ADD HABIT MODAL */}
         {isAddModalOpen && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
             <div style={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', width: '100%', maxWidth: '400px', padding: '24px', position: 'relative' }}>
