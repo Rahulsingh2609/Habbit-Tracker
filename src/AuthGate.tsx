@@ -8,6 +8,8 @@ interface AuthGateProps {
 export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
   const [isLoginTab, setIsLoginTab] = useState(true);
   const [signUpStep, setSignUpStep] = useState<1 | 2>(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -25,19 +27,18 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // 1. HANDLE EXISTING USER LOGIN (Skips Step 2, sets empty defaults)
+  // 1. EXISTING USER LOGIN
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // Existing user logging in: Defaults are empty strings so fake values don't appear
       const existingUserData = {
         fullName: formData.fullName || 'User',
         email: formData.email,
-        mobile: '',      // Keeps profile empty unless saved in DB
-        age: '',         // Keeps profile empty unless saved in DB
-        collegeName: '', // Keeps profile empty unless saved in DB
+        mobile: '',      // Empty defaults for existing login
+        age: '',
+        collegeName: '',
       };
 
       onLoginSuccess(existingUserData);
@@ -48,15 +49,15 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
     }
   };
 
-  // 2. CREATE ACCOUNT - STEP 1 SUBMIT (Goes to Profile Completion)
+  // 2. CREATE ACCOUNT - STEP 1 SUBMIT
   const handleSignUpStep1 = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.fullName && formData.email && formData.password) {
-      setSignUpStep(2); // Advances to Mobile, Age & College screen
+      setSignUpStep(2); // Opens Step 2: Complete Profile
     }
   };
 
-  // 3. CREATE ACCOUNT - STEP 2 SUBMIT (Finalizes Profile)
+  // 3. CREATE ACCOUNT - STEP 2 SUBMIT (Profile Completion)
   const handleFinalSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -80,12 +81,16 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
 
   return (
     <div style={styles.background}>
-      {/* Renders your floating emojis in the background */}
+      {/* Floating background icons */}
       <FloatingBackground />
 
       <div style={styles.card}>
-        {/* Top Circle Icon */}
-        <div style={styles.iconCircle}>✓</div>
+        {/* Glow Badge Check Icon */}
+        <div style={styles.iconCircle}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00d2ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
 
         <p style={styles.welcomeText}>WELCOME BACK</p>
         <h1 style={styles.title}>Habbit Tracker</h1>
@@ -95,7 +100,7 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
           Become unstoppable. 🚀
         </p>
 
-        {/* Tab Switcher (Login / Create Account) */}
+        {/* Tab Switcher Pills */}
         <div style={styles.tabContainer}>
           <button
             type="button"
@@ -110,110 +115,196 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
           <button
             type="button"
             style={!isLoginTab ? styles.tabActive : styles.tabInactive}
-            onClick={() => setIsLoginTab(false)}
+            onClick={() => {
+              setIsLoginTab(false);
+              setSignUpStep(1);
+            }}
           >
             Create Account
           </button>
         </div>
 
-        {/* LOGIN FORM (Existing Users -> Skips Step 2) */}
+        {/* --- LOGIN FORM --- */}
         {isLoginTab && (
           <form onSubmit={handleLoginSubmit} style={styles.form}>
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter your Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter your Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
+            {/* Email Field */}
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>✉️</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+            </div>
+
+            {/* Password Field */}
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>🔒</span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder="Enter your Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={styles.eyeBtn}
+              >
+                👁️
+              </button>
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div style={styles.rowBetween}>
+              <label style={styles.checkboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  style={{ marginRight: '6px', accentColor: '#00d2ff' }}
+                />
+                Remember Me
+              </label>
+              <a href="#forgot" style={styles.forgotLink}>Forgot Password?</a>
+            </div>
+
             <button type="submit" disabled={loading} style={styles.gradientButton}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Logging in...' : 'Login →'}
             </button>
+
+            <p style={styles.switchText}>
+              Don't have an account?{' '}
+              <span
+                style={styles.actionLink}
+                onClick={() => {
+                  setIsLoginTab(false);
+                  setSignUpStep(1);
+                }}
+              >
+                Create one
+              </span>
+            </p>
           </form>
         )}
 
-        {/* CREATE ACCOUNT - STEP 1 (Name, Email, Password) */}
+        {/* --- CREATE ACCOUNT: STEP 1 --- */}
         {!isLoginTab && signUpStep === 1 && (
           <form onSubmit={handleSignUpStep1} style={styles.form}>
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Enter your Full Name"
-              value={formData.fullName}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter your Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter your Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>👤</span>
+              <input
+                type="text"
+                name="fullName"
+                placeholder="Enter your Full Name"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+            </div>
+
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>✉️</span>
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+            </div>
+
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>🔒</span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder="Enter your Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={styles.eyeBtn}
+              >
+                👁️
+              </button>
+            </div>
+
             <button type="submit" style={styles.gradientButton}>
               Create Account →
             </button>
+
+            <p style={styles.switchText}>
+              Already have an account?{' '}
+              <span style={styles.actionLink} onClick={() => setIsLoginTab(true)}>
+                Log in
+              </span>
+            </p>
           </form>
         )}
 
-        {/* CREATE ACCOUNT - STEP 2 (Complete Profile: Mobile, Age, College) */}
+        {/* --- CREATE ACCOUNT: STEP 2 (Complete Profile) --- */}
         {!isLoginTab && signUpStep === 2 && (
           <form onSubmit={handleFinalSignUp} style={styles.form}>
-            <h3 style={styles.stepTitle}>Complete Your Profile</h3>
-            <p style={styles.stepSubtitle}>Just a few more details to get you set up!</p>
+            <div style={{ marginBottom: '8px' }}>
+              <h3 style={styles.stepTitle}>Complete Your Profile</h3>
+              <p style={styles.stepSubtitle}>Step 2 of 2 — Almost done!</p>
+            </div>
 
-            <input
-              type="tel"
-              name="mobile"
-              placeholder="Enter Mobile Number"
-              value={formData.mobile}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-            <input
-              type="number"
-              name="age"
-              placeholder="Enter your Age"
-              value={formData.age}
-              onChange={handleChange}
-              min="10"
-              max="100"
-              required
-              style={styles.input}
-            />
-            <input
-              type="text"
-              name="collegeName"
-              placeholder="College / Institute Name"
-              value={formData.collegeName}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>📱</span>
+              <input
+                type="tel"
+                name="mobile"
+                placeholder="Enter Mobile Number"
+                value={formData.mobile}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+            </div>
+
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>🎓</span>
+              <input
+                type="text"
+                name="collegeName"
+                placeholder="College / Institute Name"
+                value={formData.collegeName}
+                onChange={handleChange}
+                required
+                style={styles.input}
+              />
+            </div>
+
+            <div style={styles.inputWrapper}>
+              <span style={styles.inputIcon}>🎂</span>
+              <input
+                type="number"
+                name="age"
+                placeholder="Enter your Age"
+                value={formData.age}
+                onChange={handleChange}
+                min="10"
+                max="100"
+                required
+                style={styles.input}
+              />
+            </div>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
@@ -233,17 +324,20 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
             </div>
           </form>
         )}
+
+        {/* Footer Credit */}
+        <p style={styles.copyright}>@2026 Build by Rahul Singh</p>
       </div>
     </div>
   );
 }
 
-// Full Dark Neon Theme Styles (Restored)
+// Styling Object matching your screenshot pixel-for-pixel
 const styles: { [key: string]: React.CSSProperties } = {
   background: {
     minHeight: '100vh',
-    width: '100%',
-    backgroundColor: '#0a0d14',
+    width: '100vw',
+    backgroundColor: '#070a12',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -256,53 +350,48 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   card: {
     width: '100%',
-    maxWidth: '420px',
-    padding: '25px',
+    maxWidth: '400px',
+    padding: '20px',
     textAlign: 'center',
     position: 'relative',
     zIndex: 10,
-    backgroundColor: 'rgba(19, 24, 35, 0.65)',
-    borderRadius: '16px',
-    border: '1px solid #1e293b',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
   },
   iconCircle: {
-    width: '48px',
-    height: '48px',
+    width: '52px',
+    height: '52px',
     borderRadius: '50%',
+    backgroundColor: '#0a101d',
     border: '2px solid #00d2ff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    margin: '0 auto 12px auto',
-    color: '#00d2ff',
-    fontWeight: 'bold',
-    fontSize: '20px',
-    boxShadow: '0 0 12px rgba(0, 210, 255, 0.3)',
+    margin: '0 auto 16px auto',
+    boxShadow: '0 0 20px rgba(0, 210, 255, 0.4)',
   },
   welcomeText: {
     fontSize: '11px',
-    letterSpacing: '1.5px',
+    letterSpacing: '2px',
     color: '#00d2ff',
-    fontWeight: 'bold',
-    marginBottom: '4px',
+    fontWeight: '700',
+    marginBottom: '6px',
     marginTop: 0,
   },
   title: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    margin: '0 0 10px 0',
+    fontSize: '32px',
+    fontWeight: '800',
+    margin: '0 0 12px 0',
+    color: '#ffffff',
   },
   subtitle: {
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#94a3b8',
     lineHeight: '1.5',
-    marginBottom: '20px',
+    marginBottom: '24px',
     marginTop: 0,
   },
   tabContainer: {
     display: 'flex',
-    backgroundColor: '#0a0d14',
+    backgroundColor: '#121826',
     padding: '4px',
     borderRadius: '30px',
     marginBottom: '20px',
@@ -329,58 +418,112 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
-    boxShadow: '0 2px 10px rgba(0, 210, 255, 0.25)',
+    boxShadow: '0 2px 12px rgba(0, 210, 255, 0.3)',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
     gap: '14px',
   },
+  inputWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: '16px',
+    fontSize: '15px',
+    pointerEvents: 'none',
+    opacity: 0.7,
+  },
   input: {
     width: '100%',
-    padding: '14px 16px',
-    borderRadius: '10px',
-    backgroundColor: '#131823',
+    padding: '14px 44px 14px 44px',
+    borderRadius: '12px',
+    backgroundColor: '#0d1322',
     border: '1px solid #1e293b',
     color: '#ffffff',
     fontSize: '14px',
     outline: 'none',
     boxSizing: 'border-box',
   },
+  eyeBtn: {
+    position: 'absolute',
+    right: '16px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '14px',
+    opacity: 0.6,
+  },
+  rowBetween: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: '12px',
+    marginTop: '-2px',
+    marginBottom: '4px',
+  },
+  checkboxLabel: {
+    color: '#94a3b8',
+    display: 'flex',
+    alignItems: 'center',
+    cursor: 'pointer',
+  },
+  forgotLink: {
+    color: '#00d2ff',
+    textDecoration: 'none',
+    fontWeight: '600',
+  },
   gradientButton: {
     width: '100%',
     padding: '14px',
-    borderRadius: '10px',
+    borderRadius: '12px',
     border: 'none',
-    background: 'linear-gradient(90deg, #6366f1 0%, #06b6d4 100%)',
+    background: 'linear-gradient(90deg, #6366f1 0%, #00d2ff 100%)',
     color: '#ffffff',
     fontSize: '15px',
     fontWeight: 'bold',
     cursor: 'pointer',
-    marginTop: '5px',
-    boxShadow: '0 4px 15px rgba(6, 182, 212, 0.25)',
+    boxShadow: '0 4px 18px rgba(0, 210, 255, 0.3)',
   },
   secondaryButton: {
     width: '35%',
     padding: '14px',
-    borderRadius: '10px',
+    borderRadius: '12px',
     border: '1px solid #1e293b',
-    backgroundColor: '#131823',
+    backgroundColor: '#0d1322',
     color: '#ffffff',
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
-    marginTop: '5px',
+  },
+  switchText: {
+    fontSize: '13px',
+    color: '#94a3b8',
+    marginTop: '12px',
+    marginBottom: 0,
+  },
+  actionLink: {
+    color: '#00d2ff',
+    fontWeight: '600',
+    cursor: 'pointer',
   },
   stepTitle: {
     fontSize: '18px',
+    fontWeight: '700',
     margin: '0 0 4px 0',
     color: '#ffffff',
   },
   stepSubtitle: {
-    fontSize: '13px',
-    color: '#94a3b8',
-    marginBottom: '10px',
-    marginTop: 0,
+    fontSize: '12px',
+    color: '#00d2ff',
+    margin: 0,
+  },
+  copyright: {
+    fontSize: '11px',
+    color: '#475569',
+    marginTop: '35px',
   },
 };
