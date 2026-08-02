@@ -58,50 +58,13 @@ export function saveHabits(habits: Habit[]): void {
   localStorage.setItem(STORAGE_KEYS.HABITS, JSON.stringify(habits));
 }
 
-function generateInitialLogs(habits: Habit[]): Record<string, HabitLog> {
-  const logs: Record<string, HabitLog> = {};
-  const today = new Date();
-
-  for (let i = 21; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const dateStr = formatDate(d);
-
-    const completedIds: string[] = [];
-    const habitMetrics: Record<string, number> = {};
-    const habitNotes: Record<string, string> = {};
-
-    habits.forEach((h) => {
-      const isToday = i === 0;
-      const passProbability = isToday ? 0.4 : 0.75 + Math.sin(i * 0.5) * 0.15;
-      
-      if (Math.random() < passProbability) {
-        completedIds.push(h.id);
-        if (h.targetValue) {
-          habitMetrics[h.id] = h.targetValue;
-        }
-      }
-    });
-
-    logs[dateStr] = {
-      date: dateStr,
-      completedHabitIds: completedIds,
-      habitMetrics,
-      habitNotes,
-    };
-  }
-
-  return logs;
-}
-
+// Loads real user logs or starts completely empty
 export function loadLogs(): Record<string, HabitLog> {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.LOGS);
     if (!raw) {
-      const habits = loadHabits();
-      const initialLogs = generateInitialLogs(habits);
-      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(initialLogs));
-      return initialLogs;
+      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify({}));
+      return {};
     }
     return JSON.parse(raw);
   } catch (e) {
@@ -264,7 +227,7 @@ export function calculateUserStats(logs: Record<string, HabitLog>, habits: Habit
     const minTarget = Math.ceil(habits.length * 0.5);
     const count = log?.completedHabitIds.length || 0;
 
-    if (count >= minTarget) {
+    if (count >= minTarget && habits.length > 0) {
       tempStreak++;
       if (i === 0 || i === 1) {
         currentStreak = tempStreak;
@@ -286,8 +249,8 @@ export function calculateUserStats(logs: Record<string, HabitLog>, habits: Habit
   return {
     xp,
     level,
-    currentStreak: Math.max(currentStreak, 1),
-    bestStreak: Math.max(bestStreak, 5),
+    currentStreak,
+    bestStreak,
     totalCompletions,
   };
 }
