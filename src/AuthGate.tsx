@@ -7,7 +7,6 @@ interface AuthGateProps {
 
 export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
   const [isLoginTab, setIsLoginTab] = useState(true);
-  const [signUpStep, setSignUpStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -16,9 +15,6 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
     fullName: '',
     email: '',
     password: '',
-    mobile: '',
-    age: '',
-    collegeName: '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -27,7 +23,7 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // 1. LOGIN SUBMIT (Skips profile step & sets fields empty by default)
+  // 1. LOGIN SUBMIT
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -36,9 +32,9 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
       const existingUserData = {
         fullName: formData.fullName || 'User',
         email: formData.email,
-        mobile: '',      // Empty by default for login
-        age: '',         // Empty by default for login
-        collegeName: '', // Empty by default for login
+        mobile: '',
+        age: '',
+        collegeName: '',
       };
 
       onLoginSuccess(existingUserData);
@@ -49,26 +45,19 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
     }
   };
 
-  // 2. SIGN UP STEP 1 SUBMIT (Goes to Complete Profile step)
-  const handleSignUpStep1 = (e: React.FormEvent) => {
+  // 2. SIGN UP SUBMIT (single step — profile filled later from the app)
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.fullName && formData.email && formData.password) {
-      setSignUpStep(2);
-    }
-  };
-
-  // 3. SIGN UP STEP 2 SUBMIT (Finalizes profile with user inputs)
-  const handleFinalSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (!(formData.fullName && formData.email && formData.password)) return;
     setLoading(true);
 
     try {
       const newUserData = {
         fullName: formData.fullName,
         email: formData.email,
-        mobile: formData.mobile,
-        age: formData.age,
-        collegeName: formData.collegeName,
+        mobile: '',       // filled later via "Complete your profile"
+        age: '',          // filled later via "Complete your profile"
+        collegeName: '',  // filled later via "Complete your profile"
       };
 
       onLoginSuccess(newUserData);
@@ -103,20 +92,14 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
           <button
             type="button"
             style={isLoginTab ? styles.tabActive : styles.tabInactive}
-            onClick={() => {
-              setIsLoginTab(true);
-              setSignUpStep(1);
-            }}
+            onClick={() => setIsLoginTab(true)}
           >
             Login
           </button>
           <button
             type="button"
             style={!isLoginTab ? styles.tabActive : styles.tabInactive}
-            onClick={() => {
-              setIsLoginTab(false);
-              setSignUpStep(1);
-            }}
+            onClick={() => setIsLoginTab(false)}
           >
             Create Account
           </button>
@@ -179,10 +162,7 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
               Don't have an account?{' '}
               <span
                 style={styles.actionLink}
-                onClick={() => {
-                  setIsLoginTab(false);
-                  setSignUpStep(1);
-                }}
+                onClick={() => setIsLoginTab(false)}
               >
                 Create one
               </span>
@@ -190,9 +170,9 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
           </form>
         )}
 
-        {/* CREATE ACCOUNT STEP 1 */}
-        {!isLoginTab && signUpStep === 1 && (
-          <form onSubmit={handleSignUpStep1} style={styles.form}>
+        {/* CREATE ACCOUNT FORM (single step) */}
+        {!isLoginTab && (
+          <form onSubmit={handleSignUp} style={styles.form}>
             <div style={styles.inputWrapper}>
               <span style={styles.inputIcon}>👤</span>
               <input
@@ -239,8 +219,8 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
               </button>
             </div>
 
-            <button type="submit" style={styles.gradientButton}>
-              Create Account →
+            <button type="submit" disabled={loading} style={styles.gradientButton}>
+              {loading ? 'Creating...' : 'Create Account →'}
             </button>
 
             <p style={styles.switchText}>
@@ -249,74 +229,6 @@ export default function AuthGate({ onLoginSuccess }: AuthGateProps) {
                 Log in
               </span>
             </p>
-          </form>
-        )}
-
-        {/* CREATE ACCOUNT STEP 2 (Complete Profile) */}
-        {!isLoginTab && signUpStep === 2 && (
-          <form onSubmit={handleFinalSignUp} style={styles.form}>
-            <div style={{ marginBottom: '8px' }}>
-              <h3 style={styles.stepTitle}>Complete Your Profile</h3>
-              <p style={styles.stepSubtitle}>Step 2 of 2 — Almost done!</p>
-            </div>
-
-            <div style={styles.inputWrapper}>
-              <span style={styles.inputIcon}>📱</span>
-              <input
-                type="tel"
-                name="mobile"
-                placeholder="Enter Mobile Number"
-                value={formData.mobile}
-                onChange={handleChange}
-                required
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputWrapper}>
-              <span style={styles.inputIcon}>🎓</span>
-              <input
-                type="text"
-                name="collegeName"
-                placeholder="College / Institute Name"
-                value={formData.collegeName}
-                onChange={handleChange}
-                required
-                style={styles.input}
-              />
-            </div>
-
-            <div style={styles.inputWrapper}>
-              <span style={styles.inputIcon}>🎂</span>
-              <input
-                type="number"
-                name="age"
-                placeholder="Enter your Age"
-                value={formData.age}
-                onChange={handleChange}
-                min="10"
-                max="100"
-                required
-                style={styles.input}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => setSignUpStep(1)}
-                style={styles.secondaryButton}
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                style={styles.gradientButton}
-              >
-                {loading ? 'Saving...' : 'Finish Setup 🚀'}
-              </button>
-            </div>
           </form>
         )}
 
