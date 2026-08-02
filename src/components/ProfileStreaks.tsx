@@ -45,7 +45,10 @@ export function ProfileStreaks({ userProfile, userEmail, onSaveProfile, onLogout
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => {
+                setFormData(userProfile);
+                setIsEditing(!isEditing);
+              }}
               className="p-2.5 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-white/10 transition-colors"
               title="Edit Profile"
             >
@@ -80,6 +83,13 @@ export function ProfileStreaks({ userProfile, userEmail, onSaveProfile, onLogout
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="Phone Number"
+                className="w-full bg-slate-950/80 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+              />
+              <input
+                type="number"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                placeholder="Age"
                 className="w-full bg-slate-950/80 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
               />
               <input

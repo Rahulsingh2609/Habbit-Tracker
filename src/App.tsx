@@ -65,9 +65,9 @@ export default function App() {
 
   // Profile Details State
   const [userName, setUserName] = useState<string>(() => localStorage.getItem('userName') || '');
-  const [userMobile, setUserMobile] = useState<string>(() => localStorage.getItem('userMobile') || '+91 9876543210');
-  const [userAge, setUserAge] = useState<string>(() => localStorage.getItem('userAge') || '21');
-  const [userCollege, setUserCollege] = useState<string>(() => localStorage.getItem('userCollege') || 'Engineering Institute');
+  const [userMobile, setUserMobile] = useState<string>(() => localStorage.getItem('userMobile') || '+91 ');
+  const [userAge, setUserAge] = useState<string>(() => localStorage.getItem('userAge') || ' ');
+  const [userCollege, setUserCollege] = useState<string>(() => localStorage.getItem('userCollege') || '');
   
   const [isProfileSetupOpen, setIsProfileSetupOpen] = useState<boolean>(false);
 
