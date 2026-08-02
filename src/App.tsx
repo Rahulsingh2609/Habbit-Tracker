@@ -12,7 +12,7 @@ interface User {
 }
 
 export default function App() {
-  // Demo state (Replace with actual user auth state/data from API)
+  // Demo state
   const [user, setUser] = useState<User>({
     id: '123',
     name: 'Rahul',
@@ -20,8 +20,11 @@ export default function App() {
     mobile: '',
     collegeName: '',
     age: '',
-    isProfileComplete: false, // Set to false to trigger profile completion
+    isProfileComplete: false,
   });
+
+  // Controls whether the user has tapped "Get Started"
+  const [hasStarted, setHasStarted] = useState(false);
 
   const [formData, setFormData] = useState({
     mobile: user.mobile || '',
@@ -46,8 +49,8 @@ export default function App() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with your actual backend API call
-      // await fetch('/api/user/complete-profile', { method: 'POST', body: JSON.stringify(formData) });
+      // TODO: Replace with your actual backend API call or Firebase update
+      // await updateDoc(doc(db, "users", user.id), { ...formData, isProfileComplete: true });
 
       // Update local state on success
       setUser((prev) => ({
@@ -63,14 +66,34 @@ export default function App() {
     }
   };
 
-  // 1. SHOW PROFILE COMPLETION FORM IF PROFILE IS INCOMPLETE
+  // 1. STEP 1: LANDING PAGE WITH "GET STARTED" BUTTON
+  if (!hasStarted && !user.isProfileComplete) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <h1 style={styles.title}>Habit Tracker</h1>
+          <p style={styles.subtitle}>
+            Track your daily habits, build consistency, and hit your goals!
+          </p>
+          <button 
+            onClick={() => setHasStarted(true)} 
+            style={styles.button}
+          >
+            Get Started
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. STEP 2: PROFILE COMPLETION FORM (Triggers when user clicks "Get Started")
   if (!user.isProfileComplete) {
     return (
       <div style={styles.container}>
         <div style={styles.card}>
           <h2 style={styles.title}>Complete Your Profile</h2>
           <p style={styles.subtitle}>
-            Welcome, <strong>{user.name}</strong>! Please fill in your details to start tracking habits.
+            Welcome! Please fill in your details to start tracking habits.
           </p>
 
           <form onSubmit={handleSubmit} style={styles.form}>
@@ -88,11 +111,11 @@ export default function App() {
             </div>
 
             <div style={styles.inputGroup}>
-              <label style={styles.label}>College Name</label>
+              <label style={styles.label}>College / Institute Name</label>
               <input
                 type="text"
                 name="collegeName"
-                placeholder="Enter your college name"
+                placeholder="Enter your college or institute"
                 value={formData.collegeName}
                 onChange={handleChange}
                 required
@@ -124,26 +147,26 @@ export default function App() {
     );
   }
 
-  // 2. SHOW MAIN HABIT TRACKER DASHBOARD WHEN PROFILE IS COMPLETE
+  // 3. STEP 3: MAIN HABIT TRACKER DASHBOARD (Shows after profile completion)
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <h1 style={styles.title}>Habit Tracker Dashboard</h1>
         <p style={styles.subtitle}>Welcome back, {user.name}!</p>
-        
+
         <div style={styles.profileBadge}>
           <p><strong>Mobile:</strong> {user.mobile}</p>
           <p><strong>College:</strong> {user.collegeName}</p>
           <p><strong>Age:</strong> {user.age}</p>
         </div>
 
-        {/* Your Habit Tracker components go here */}
+        {/* Your main Habit Tracker components go here */}
       </div>
     </div>
   );
 }
 
-// Inline CSS Styles for quick testing
+// Inline CSS Styles
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: 'flex',
@@ -160,6 +183,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
     maxWidth: '400px',
     width: '100%',
+    textAlign: 'center',
   },
   title: {
     margin: '0 0 10px 0',
@@ -170,11 +194,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: '0 0 20px 0',
     color: '#666',
     fontSize: '14px',
+    lineHeight: '1.5',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
     gap: '15px',
+    textAlign: 'left',
   },
   inputGroup: {
     display: 'flex',
@@ -202,6 +228,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '16px',
     fontWeight: 'bold',
     cursor: 'pointer',
+    width: '100%',
   },
   profileBadge: {
     backgroundColor: '#eef2f5',
@@ -209,5 +236,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: '8px',
     marginTop: '15px',
     fontSize: '14px',
-  }
+    textAlign: 'left',
+  },
 };
